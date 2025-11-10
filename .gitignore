@@ -1,0 +1,18 @@
+# Ignorar la carpeta de dependencias de React
+/frontend/node_modules
+/frontend/build
+/frontend/dist
+
+# Ignorar la carpeta de dependencias de Laravel
+/backend/vendor
+/backend/node_modules
+/backend/storage/*.key
+/backend/public/hot
+/backend/.env
+
+# Ignorar archivos del IDE
+.vscode/
+.idea/
+
+# Otros archivos comunes
+.DS_Store
