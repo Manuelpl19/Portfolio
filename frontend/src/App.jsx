@@ -4,7 +4,7 @@ const API_URL = "http://127.0.0.1:8000/api/tasks";
 
 function App() {
   const [newTitle, setNewTitle] = useState('');
-  const [statusMessage, setStatusMessage] = useState('Full Stack inicializado.');
+  const [statusMessage, setStatusMessage] = useState('');
   const [tasks, setTasks] = useState([]);
 
   const fetchTasks = async () => {
