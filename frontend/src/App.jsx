@@ -1,173 +1,155 @@
 import React, { useState, useEffect } from 'react';
 
-// URL de la API de Laravel (asegúrate de que el puerto sea el 8000)
-const API_URL = "http://127.0.0.1:8000/api/tasks"; 
+const API_URL = "http://127.0.0.1:8000/api/tasks";
 
 function App() {
   const [newTitle, setNewTitle] = useState('');
   const [statusMessage, setStatusMessage] = useState('Full Stack inicializado.');
   const [tasks, setTasks] = useState([]);
 
-  // ------------------------------------
-  // FUNCIÓN 1: CARGAR TODAS LAS TAREAS (READ)
-  // ------------------------------------
   const fetchTasks = async () => {
     try {
       const response = await fetch(API_URL);
-      if (!response.ok) {
-        throw new Error(`HTTP error! Estado: ${response.status}`);
-      }
+      if (!response.ok) throw new Error();
       const data = await response.json();
-      setTasks(data); // Guarda la lista
+      setTasks(data);
     } catch (error) {
-      console.error('Error al cargar tareas:', error);
-      setStatusMessage('ERROR: No se pudo conectar con la API de Laravel.');
+      setStatusMessage("ERROR: No se pudo conectar con la API.");
     }
   };
 
-  // Carga inicial al montar el componente
   useEffect(() => {
     fetchTasks();
   }, []);
 
-  // ------------------------------------
-  // FUNCIÓN 2: MANEJAR ENVÍO (CREATE)
-  // ------------------------------------
   const handleSubmit = async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
     if (!newTitle) return;
 
     try {
       const response = await fetch(API_URL, {
-        method: 'POST', 
-        headers: {
-          'Content-Type': 'application/json',
-          // 'Accept': 'application/json', // Opcional
-        },
-        body: JSON.stringify({ title: newTitle }),
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ title: newTitle })
       });
 
       if (response.ok) {
         const newTask = await response.json();
         setStatusMessage(`Tarea creada con éxito! ID: ${newTask.id}`);
-        setNewTitle(''); 
-        fetchTasks(); // Recarga la lista
+        setNewTitle('');
+        fetchTasks();
       } else {
-        const errorData = await response.json();
-        setStatusMessage(`Error en la creación: ${errorData.message}`);
+        setStatusMessage("Error al crear tarea.");
       }
-    } catch (error) {
-      console.error('Error de red o CORS:', error);
-      setStatusMessage('Error de conexión con la API.');
+    } catch {
+      setStatusMessage("Error de conexión con la API.");
     }
   };
 
-  // ------------------------------------
-  // FUNCIÓN 3: ELIMINAR TAREA (DELETE)
-  // ------------------------------------
   const handleDelete = async (taskId) => {
-    const url = `${API_URL}/${taskId}`;
-
     try {
-      const response = await fetch(url, {
-        method: 'DELETE',
-      });
-
-      if (response.status === 204) { // Laravel devuelve 204 No Content
+      const response = await fetch(`${API_URL}/${taskId}`, { method: "DELETE" });
+      if (response.status === 204) {
         setStatusMessage(`Tarea ID ${taskId} eliminada.`);
-        fetchTasks(); // Recarga la lista
-      } else {
-        setStatusMessage(`Error al eliminar ID ${taskId}.`);
+        fetchTasks();
       }
-    } catch (error) {
-      console.error('Error de red al eliminar:', error);
-    }
+    } catch {}
   };
 
-  // ------------------------------------
-  // FUNCIÓN 4: ACTUALIZAR ESTADO (UPDATE)
-  // ------------------------------------
   const handleToggleComplete = async (task) => {
-    const url = `${API_URL}/${task.id}`; 
-    const newStatus = !task.is_completed; // Invertir el estado
-
     try {
-      const response = await fetch(url, {
-        method: 'PUT', // PUT/PATCH para actualizar
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      const response = await fetch(`${API_URL}/${task.id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          title: task.title, // Mandar el título de vuelta para pasar la validación
-          is_completed: newStatus,
-        }),
+          title: task.title,
+          is_completed: !task.is_completed,
+        })
       });
 
       if (response.ok) {
-        setStatusMessage(`Tarea ID ${task.id} marcada como ${newStatus ? 'Completada' : 'Pendiente'}.`);
-        fetchTasks(); // Recarga la lista
-      } else {
-        setStatusMessage(`Error al actualizar ID ${task.id}.`);
+        fetchTasks();
+        setStatusMessage(
+          `Tarea ${task.id} marcada como ${!task.is_completed ? "COMPLETADA" : "PENDIENTE"}.`
+        );
       }
-    } catch (error) {
-      console.error('Error de red al actualizar:', error);
-    }
+    } catch {}
   };
 
-  // ------------------------------------
-  // RENDERIZADO DEL COMPONENTE
-  // ------------------------------------
   return (
-    <div style={{ padding: '20px', maxWidth: '800px', margin: 'auto' }}>
-      <h1>CRUD de Tareas (React + Laravel)</h1>
-      <p style={{ fontWeight: 'bold' }}>{statusMessage}</p>
+    <div className="min-h-screen bg-gradient-to-br from-black via-neutral-900 to-neutral-800 p-8 text-gray-100">
 
-      {/* Formulario de Creación */}
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px', marginBottom: '40px' }}>
-        <input
-          type="text"
-          value={newTitle}
-          onChange={(e) => setNewTitle(e.target.value)}
-          placeholder="Título de la nueva tarea"
-          required
-          style={{ flexGrow: 1, padding: '10px' }}
-        />
-        <button type="submit" style={{ padding: '10px', backgroundColor: '#4CAF50', color: 'white', border: 'none', cursor: 'pointer' }}>Crear Tarea</button>
-      </form>
-      
-      <hr />
+      {/* HEADER */}
+      <header className="mb-10">
+        <h1 className="text-4xl font-extrabold tracking-tight mb-2">
+          Gestor de Tareas
+        </h1>
+        <p className="text-gray-400">{statusMessage}</p>
+      </header>
 
-      {/* Listado de Tareas */}
-      <h2>Lista de Tareas ({tasks.length})</h2>
-      <ul style={{ listStyleType: 'none', padding: 0 }}>
-        {tasks.map(task => (
-          <li 
-            key={task.id} 
-            // Aplica estilos de la lista CSS y la clase 'completed-task'
-            className={task.is_completed ? 'completed-task' : ''} 
-            style={{ padding: '15px', borderBottom: '1px solid #eee', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: task.is_completed ? '#2a2a2a' : '#1e1e1e' }}
-          >
-            <div 
-              style={{ textDecoration: task.is_completed ? 'line-through' : 'none', color: task.is_completed ? '#999' : 'inherit' }}>
-              
-              {/* Actualizar estado al hacer clic en el título */}
-              <strong 
-                onClick={() => handleToggleComplete(task)} 
-                style={{ cursor: 'pointer', marginRight: '10px' }}>
-                {task.title}
-              </strong> 
-              (ID: {task.id}) - Estado: {task.is_completed ? 'COMPLETADA' : 'PENDIENTE'}
-            </div>
-            
-            {/* Botón Eliminar */}
-            <button 
-              onClick={() => handleDelete(task.id)} 
-              style={{ padding: '5px 10px', backgroundColor: '#dc3545', color: 'white', border: 'none', cursor: 'pointer', borderRadius: '4px' }}>
-              Eliminar
+      {/* CARD PRINCIPAL */}
+      <div className="bg-neutral-900/60 border border-neutral-700 backdrop-blur-xl rounded-2xl shadow-2xl p-8 max-w-2xl mx-auto">
+
+        {/* FORMULARIO */}
+        <form onSubmit={handleSubmit} className="mb-10">
+          <label className="block text-sm font-medium mb-1">Nueva Tarea</label>
+
+          <div className="flex gap-3">
+            <input
+              type="text"
+              className="flex-grow bg-neutral-800 border border-neutral-600 px-4 py-2.5 rounded-xl text-gray-200
+              focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+              placeholder="Escribe un título..."
+              value={newTitle}
+              onChange={(e) => setNewTitle(e.target.value)}
+              required
+            />
+            <button
+              type="submit"
+              className="bg-blue-600 hover:bg-blue-700 transition px-5 py-2 rounded-xl font-semibold"
+            >
+              Crear
             </button>
-          </li>
-        ))}
-      </ul>
+          </div>
+        </form>
+
+        {/* LISTA */}
+        <h2 className="text-xl font-semibold mb-4">
+          Tareas ({tasks.length})
+        </h2>
+
+        <ul className="space-y-4">
+          {tasks.map(task => (
+            <li
+              key={task.id}
+              className={`flex justify-between items-center p-4 rounded-xl border shadow-md transition
+              ${task.is_completed
+                ? "bg-neutral-800/70 border-neutral-700 opacity-70"
+                : "bg-neutral-800 border-neutral-700 hover:bg-neutral-750"}
+            `}
+            >
+              <div
+                className="cursor-pointer flex flex-col"
+                onClick={() => handleToggleComplete(task)}
+              >
+                <span className={`font-bold text-lg tracking-wide 
+                  ${task.is_completed ? "line-through text-gray-400" : ""}`}>
+                  {task.title}
+                </span>
+                <span className="text-xs text-gray-500">ID: {task.id}</span>
+              </div>
+
+              <button
+                onClick={() => handleDelete(task.id)}
+                className="bg-red-600 hover:bg-red-700 transition px-3 py-1.5 rounded-lg text-sm font-medium"
+              >
+                Eliminar
+              </button>
+            </li>
+          ))}
+        </ul>
+
+      </div>
     </div>
   );
 }
