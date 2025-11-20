@@ -8,8 +8,8 @@ Este es un Gestor de Tareas moderno y sencillo implementado como una **SPA**. El
 
 | Componente | Rol | Tecnologías |
 | :--- | :--- | :--- |
-| **Backend (API)** | Servidor de Datos y Lógica de Negocio | **Laravel** (PHP) |
-| **Frontend (UI)** | Interfaz de Usuario y Lógica de Presentación | **React** (JavaScript) |
+| **Backend** | Servidor de Datos y Lógica de Negocio | **Laravel** (PHP) |
+| **Frontend** | Interfaz de Usuario y Lógica de Presentación | **React** (JavaScript) |
 | **Autenticación** | Gestión de Sesiones y Tokens | **Laravel Sanctum** |
 | **Estilos** | Diseño responsivo y utilitario | **Tailwind** |
 | **Comunicación** | Peticiones HTTP del Frontend al Backend | **Fetch API** |
